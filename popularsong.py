@@ -2,7 +2,7 @@
 import pandas as pd
 import numpy as np
 
-#Scikit stuff
+
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor, \
                             BaggingClassifier, BaggingRegressor, \
@@ -14,15 +14,15 @@ from sklearn.metrics import mean_squared_error, pair_confusion_matrix, r2_score,
 
 import scikitplot as skplt
 
-#dmba stuff
+
 from dmba import regressionSummary, exhaustive_search
 from dmba import adjusted_r2_score, AIC_score, BIC_score
 from dmba import classificationSummary, gainsChart, liftChart, plotDecisionTree
 
-# visualization and tuning the aesthetics
+# Visualization and aesthetics
 import matplotlib.pylab as plt
 import seaborn as sns
-# %matplotlib inline
+
 sns.set_style("whitegrid")
 sns.set_context("notebook", font_scale=1, rc={"lines.linewidth": 2,'font.family': [u'times']})
 plt.style.use('seaborn-v0_8-whitegrid')
@@ -38,7 +38,7 @@ import pydotplus as pplus
 import graphviz
 from IPython.display import Image
 from six import StringIO
-# if not found: ! pip install six
+
 
 
 from sklearn.tree import export_graphviz
@@ -89,7 +89,7 @@ def clean_numeric_column(df, column_name):
 columns_to_clean = ['All Time Rank','Spotify Streams','Spotify Playlist Count','Spotify Playlist Reach','YouTube Views','YouTube Likes','TikTok Posts','TikTok Likes','TikTok Views','YouTube Playlist Reach',
     'AirPlay Spins','SiriusXM Spins','Deezer Playlist Count','Deezer Playlist Reach','Amazon Playlist Count','Pandora Streams','Pandora Track Stations','Soundcloud Streams','Shazam Counts','TIDAL Popularity'
 ]
-# these are some colum that may have coomas or be numeric
+# Cleaning columns to ensure models present accurately
 
 for col in columns_to_clean:
     dfSpotify = clean_numeric_column(dfSpotify, col)
@@ -97,7 +97,7 @@ for col in columns_to_clean:
 
 
 dfSpotify['Explicit Track'] = dfSpotify['Explicit Track'].astype(int)
-#turning into a binary
+#Turning explicit track into a binary
 
 dfSpotify.head()
 
@@ -120,7 +120,7 @@ columns_to_exclude = [
     'All Time Rank',
     'Is Top Hit'
 ]
-# dropped track, album, and IRSC becuase they had over 4000 unique values each.
+# Dropped track, album, and IRSC becuase they had over 4000 unique values each.
 
 Xvar = dfSpotify.drop(columns = columns_to_exclude)
 yvar = dfSpotify['Is Top Hit']
@@ -142,7 +142,7 @@ class_labels = ['Not Top Hit (0)', 'Top Hit (1)']
 
 DT_spotify = DecisionTreeClassifier(max_depth=4, max_leaf_nodes=None, \
                                       max_features=None, random_state=23)
-# had to change the max depth because it became to deep
+# Changing max depth for optimization
 
 DT_spotify.fit(X2_train, Y2_train)
 
@@ -173,4 +173,16 @@ False Positives: 2 Songs were predicted to be false positives which was inaccura
 
 False Negatives: Model inccorectly predicted that 39 songs were top hits
 """
+DT_prediction_cte = DT_spotify.predict(X2_test)
 
+#Printing classification port to teminal
+print(classification_report(Y2_test, DT_prediction_cte, target_names=class_labels))
+
+#Calculating accuracy for predicitions
+accuracy = accuracy_score(Y2_test, DT_prediction_cte)
+print(f"Accuracy (Test Set): {accuracy:.4f}")
+
+#AUC & ROC scores
+DT_proba_cte = DT_spotify.predict_proba(X2_test)
+roc_auc = roc_auc_score(Y2_test, DT_proba_cte[:, 1])
+print(f"AUC-ROC Score (Test Set): {roc_auc:.4f}")
